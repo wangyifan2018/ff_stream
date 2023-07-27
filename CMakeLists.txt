@@ -21,6 +21,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_CFLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}  -fprofile-arcs -ftest-coverage -g -rdynamic")
 
 set(FFMPEG_DIR  /opt/sophon/sophon-ffmpeg-latest/lib/cmake)
 find_package(FFMPEG REQUIRED)
@@ -38,9 +39,11 @@ find_package(libsophon REQUIRED)
 include_directories(${LIBSOPHON_INCLUDE_DIRS})
 link_directories(${LIBSOPHON_LIB_DIRS})
 
-include_directories(PROJECT_SOURCE_DIR)
+include_directories(include/)
 
 aux_source_directory(. SRC_FILES)
+aux_source_directory(src/ SRC_FILES)
+
 add_executable(ff_stream_push.${TARGET_ARCH} ${SRC_FILES})
 target_link_libraries(ff_stream_push.${TARGET_ARCH} ${FFMPEG_LIBS} ${OpenCV_LIBS} -lpthread)
 
