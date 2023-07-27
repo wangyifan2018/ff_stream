@@ -22,7 +22,24 @@ int sophon_idx = 0;
 static void usage(char* program_name);
 void handler(int sig);
 
-void decode_encode_serial(void* ff_decoder, void* ff_encoder) {
+void get_water_mark(bm_handle_t& handle, bm_device_mem_t* watermark) {
+  FILE* fp = fopen("/opt/sophon/sophon-sample-latest/bin/water.bin", "rb+");
+  if (fp) {
+    int water_w = 118;
+    int water_h = 80;
+    int total = water_w * water_h;
+    watermark = (bm_device_mem_t*)malloc(sizeof(bm_device_mem_t));
+    bm_malloc_device_byte_heap_mask(handle, watermark, 0x2, total);
+    char* watermark_file = (char*)malloc(total);
+    fread((void*)watermark_file, 1, total, fp);
+    bm_memcpy_s2d(handle, *watermark, (void*)watermark_file);
+    fclose(fp);
+    free(watermark_file);
+  }
+}
+
+void decode_encode_serial(bm_handle_t& handle, void* ff_decoder,
+                          void* ff_encoder) {
   VideoEnc_FFMPEG* encoder = (VideoEnc_FFMPEG*)ff_encoder;
   VideoDec_FFMPEG* decoder = (VideoDec_FFMPEG*)ff_decoder;
   int sophon_id = encoder->sophon_id;
@@ -33,8 +50,9 @@ void decode_encode_serial(void* ff_decoder, void* ff_encoder) {
   int output_type = encoder->get_output_type();
   int frame_interval = 1 * 1000 * 1000 / framerate;
   timeval curframe_start, curframe_push;
-  bm_handle_t handle;
-  bm_dev_request(&handle, sophon_id);
+  bm_device_mem_t* watermark;
+  get_water_mark(handle, watermark);
+  // std::cout << "watermark: " << watermark << std::endl;
 
   while (push_count < frame_count) {
     if (output_type != VIDEO_LOCAL_FILE) gettimeofday(&curframe_start, NULL);
@@ -43,8 +61,11 @@ void decode_encode_serial(void* ff_decoder, void* ff_encoder) {
     AVFrame* enc_frame = av_frame_alloc();
     int ret = decoder->grabFrame(frame);
     if (ret < 0) break;
-    AVFrameConvert(handle, frame, enc_frame, enc_h, enc_w, enc_pix_fmt,
-                   chip_id);
+
+    AVFrameConvert(handle, frame, enc_frame, enc_h, enc_w, enc_pix_fmt, chip_id,
+                   0, 1, watermark);
+    // AVFrameConvert(handle, frame, enc_frame, enc_h, enc_w, enc_pix_fmt,
+    //                chip_id);
 
     encoder->writeFrame(enc_frame);
     push_count++;
@@ -92,6 +113,8 @@ void* push_thread(void* ff_encoder) {
 
   bm_handle_t handle;
   bm_dev_request(&handle, sophon_id);
+  bm_device_mem_t* watermark;
+  get_water_mark(handle, watermark);
 
   while (!quit_flag) {
     if (output_type != VIDEO_LOCAL_FILE) gettimeofday(&curframe_start, NULL);
@@ -113,8 +136,11 @@ void* push_thread(void* ff_encoder) {
     }
 
     AVFrame* enc_frame = av_frame_alloc();
-    AVFrameConvert(handle, frame, enc_frame, enc_h, enc_w, enc_pix_fmt,
-                   chip_id);
+
+    AVFrameConvert(handle, frame, enc_frame, enc_h, enc_w, enc_pix_fmt, chip_id,
+                   0, 1, watermark);
+    // AVFrameConvert(handle, frame, enc_frame, enc_h, enc_w, enc_pix_fmt,
+    //                chip_id);
     encoder->writeFrame(enc_frame);
     av_frame_free(&enc_frame);
     av_frame_free(&frame);
@@ -174,35 +200,25 @@ int main(int argc, char** argv) {
   encoder.openEnc(argv[2], encoder_name, enc_frame_rate, enc_width, enc_height,
                   enc_pix_fmt, enc_bitrate, sophon_idx);
 
-  std::cout << "  ___           _             " << std::endl;
-  std::cout << " / __| ___ _ __| |_  ___ _ _  " << std::endl;
-  std::cout << " \\__ \\/ _ \\ '_ \\ ' \\/ _ \\ ' \\ " << std::endl;
-  std::cout << " |___/\\___/ .__/|_|_\\___/_||_|" << std::endl;
-  std::cout << "          |_|                  " << std::endl;
-  std::cout << "rtsp push start... url: " << argv[2] << std::endl;
-  std::cout
-      << "------------------------------------------------------------------"
-      << std::endl;
-
   /********************** multi thread **********************/
-  std::thread grab(&grab_thread, (void*)&decoder);
-  std::thread push(&push_thread, (void*)&encoder);
+  // std::thread grab(&grab_thread, (void*)&decoder);
+  // std::thread push(&push_thread, (void*)&encoder);
 
-  grab.detach();
-  push.detach();
+  // grab.detach();
+  // push.detach();
 
-  while (1) {
-    if (push_count > frame_count) {
-      quit_flag = true;
-      break;
-    }
-    usleep(10 * 1000);
-  }
-  // wait for thread quit, then close.
-  usleep(5 * 1000);
+  // while (1) {
+  //   if (push_count > frame_count) {
+  //     quit_flag = true;
+  //     break;
+  //   }
+  //   usleep(10 * 1000);
+  // }
+  // // wait for thread quit, then close.
+  // usleep(5 * 1000);
 
   /************************ serial *************************/
-  //   decode_encode_serial((void*)&decoder, (void*)&encoder);
+  decode_encode_serial(handle, (void*)&decoder, (void*)&encoder);
 
   decoder.closeDec();
   encoder.closeEnc();

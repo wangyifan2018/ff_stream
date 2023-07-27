@@ -313,7 +313,7 @@ int bm_image_to_avframe(bm_handle_t &bm_handle,bm_image *in,AVFrame *out){
 *    @watermark           bm_device_mem_t* for watermark paddr
 *    convert success return 0 else return -1.
 */
-int AVFrameConvert(bm_handle_t &bmHandle,AVFrame *inPic,AVFrame *outPic,int enc_frame_height,int enc_frame_width,int enc_pix_format,int chip_id, 
+int AVFrameConvert(bm_handle_t &bmHandle,AVFrame *inPic,AVFrame *outPic,int enc_frame_height,int enc_frame_width,int enc_pix_format,int chip_id,
                     int enable_mosaic, int enable_watermark, bm_device_mem_t* watermark){
 
     if(!inPic){
@@ -355,7 +355,7 @@ int AVFrameConvert(bm_handle_t &bmHandle,AVFrame *inPic,AVFrame *outPic,int enc_
     if(!bm_image_is_attached(*bmImageout)){
         return -1;
     }
-    
+
     if(bmOutFormat==FORMAT_YUV420P || chip_id==0x1686)
     {
     	bmcv_rect_t crop_rect = {0, 0, inPic->width, inPic->height};
@@ -389,8 +389,8 @@ int AVFrameConvert(bm_handle_t &bmHandle,AVFrame *inPic,AVFrame *outPic,int enc_
     /* watermark process*/
     if (enable_watermark){
         int interval = 300;
-        int water_w = 117;
-        int water_h = 79;
+        int water_w = 118;
+        int water_h = 80;
         int font_idx = 0;
 
         bmcv_rect_t * rect;
