@@ -1,3 +1,0 @@
-/home/yifan.wang/workspace/ff_stream/build/CMakeFiles/rebuild_cache.dir
-/home/yifan.wang/workspace/ff_stream/build/CMakeFiles/edit_cache.dir
-/home/yifan.wang/workspace/ff_stream/build/CMakeFiles/ff_stream_push.dir

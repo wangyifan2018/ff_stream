@@ -1,0 +1,45 @@
+# Distribution / packaging
+build/
+data/
+images/
+
+*.zip
+*.tar
+*.tar.gz
+
+# Execute file
+*.soc
+*.pcie
+
+# Video
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.3gp
+*.webm
+
+# Audio
+*.mp3
+*.wav
+*.aac
+*.ogg
+*.flac
+*.wma
+*.aiff
+
+# VSCode settings
+.vscode
+
+# OSX dir files
+.DS_Store
+
+# dotenv
+.env
+
+# virtualenv
+.venv/
+venv/
+ENV/

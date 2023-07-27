@@ -41,6 +41,6 @@ link_directories(${LIBSOPHON_LIB_DIRS})
 include_directories(PROJECT_SOURCE_DIR)
 
 aux_source_directory(. SRC_FILES)
-add_executable(ff_stream_push ${SRC_FILES})
-target_link_libraries(ff_stream_push ${FFMPEG_LIBS} ${OpenCV_LIBS} -lpthread)
+add_executable(ff_stream_push.${TARGET_ARCH} ${SRC_FILES})
+target_link_libraries(ff_stream_push.${TARGET_ARCH} ${FFMPEG_LIBS} ${OpenCV_LIBS} -lpthread)
 
